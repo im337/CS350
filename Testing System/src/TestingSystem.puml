@@ -1,0 +1,130 @@
+@startuml
+
+' Test types
+class Test
+class Survey
+
+' Questions
+abstract class Question
+class TrueFalse
+class ShortAnswer
+class EssayAnswer
+class MultipleChoice
+class Ranking
+class Matching
+
+' drivers
+class Input
+class Output
+class ResponseCorrectAnswer
+
+' controllers
+class MainMenu
+
+
+MainMenu *-- Test
+MainMenu *-- Survey
+MainMenu *-- Output
+
+
+class MainMenu {
+-ArrayList<Survey> questionnaireList
+
++displayQuestionnaires()
++questionnaireController(Survey survey)
+}
+
+
+
+Survey <|-- Test
+Survey *-- Question
+Survey *-- Input
+Test *-- Input
+Test *-- Question
+
+class Survey {
++ String questionnaireName
+- ArrayList<Question> Questions
++ getQuestionnaireName() : String
++ setQuestionnaireName(String name)
++ addQuestion(Question question, String Answer)
++ addNoAnswerQuestion(Question question)
++ deleteQuestion(Question question)
++ saveQuestionnaire(String name, String filename)
++ loadQuestionnaire(String name) : Survey
+}
+
+class Test {
+-ArrayList<String> correctAnswers
++testGrade(correctAnswers, responses) : double
++saveGrade(int grade)
+}
+
+
+class Input {
+-Scanner inputReader
+-String userInput
++getUserInput(String userInput)
+}
+
+class Output {
++displayOutput(String output)
+}
+
+Question <|-- MultipleChoice
+Question <|-- EssayAnswer
+Question <|-- Matching
+MultipleChoice <|-- TrueFalse
+EssayAnswer <|-- ShortAnswer
+Matching <|-- Ranking
+
+
+class Question {
+-String questionPrompt
++Question(String questionPrompt)
++getQuestion() : String
++saveQuestion()
+}
+
+class EssayAnswer{
+}
+
+class ShortAnswer{
+-int wordLimit
++setWordLimit(int limit)
++getWordLimit() : int
+}
+
+class MultipleChoice{
+-ArrayList<String> Choices
++getChoices() : ArrayList<String>
+
+}
+
+class TrueFalse{
+}
+
+class Matching{
+-ArrayList<String> choices
++setUserChoices(ArrayList<String> choices)
+}
+
+class Ranking{
+-ArrayList<String> userRankings
++setUserRankings(ArrayList<String> rankings)
+}
+
+Test *-- ResponseCorrectAnswer
+
+class ResponseCorrectAnswer {
+-ArrayList<String> responses
++getResponses() : ArrayList<String> responses
++addResponse(String response);
++setResponses(ArrayList<String> responses)
++stringCompare(String correctAnswer, String response) : bool
++matchingCompare(ArrayList<String> matchingAnswers, ArrayList<String> matchingResponses)
+
+}
+
+
+@enduml
