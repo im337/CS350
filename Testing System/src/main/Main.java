@@ -1,15 +1,11 @@
 package main;
 
+import assessments.Responses;
 import assessments.Survey;
 import assessments.Test;
 import io.Input;
 import io.Output;
-import questions.EssayAnswer;
-import questions.MultipleChoice;
-import questions.ShortAnswer;
-import questions.TrueFalse;
-import questions.Matching;
-import questions.Ranking;
+import questions.*;
 
 
 import java.io.File;
@@ -23,16 +19,17 @@ import java.util.Scanner;
 public class Main {
 
     protected static ArrayList<String> mainChoices = new ArrayList<>(Arrays.asList("1", "2"));	// MainMenu choices
-    protected static ArrayList<String> surveyChoices = new ArrayList<>(Arrays.asList("1", "2", "3", "4", "5"));// Test/Survey choices
+    protected static ArrayList<String> surveyChoices = new ArrayList<>(Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8", "9"));// Test/Survey choices
     protected static ArrayList<String> questionChoices = new ArrayList<>(Arrays.asList("1", "2", "3", "4", "5", "6", "7")); //Question adding choices
 
     static Scanner reader = new Scanner(System.in).useDelimiter("\\n");
     private static Survey currentSurvey;
     private static Test currentTest;
+    private static Responses currentResponses;
 
     String input;
 
-    public static void MainMenu() throws IOException{
+    public static void MainMenu() throws IOException, ClassNotFoundException {
 
         System.out.println("Select an assessment type: ");
         System.out.println("1) Survey\n2) Test\n");
@@ -47,14 +44,14 @@ public class Main {
         else
         {
             switch (input) {
-                case "1" : SurveyMenu();
-                case "2" : TestMenu();
+                case "1" : SurveyMenu(); break;
+                case "2" : TestMenu(); break;
             }
         }
     }
 
-    public static void SurveyMenu() throws IOException {
-        System.out.println("1) Create and save a new Survey\n2) Display a Survey\n3) Load and display a Survey\n4) Save a Survey(does nothing)\n5) Quit");
+    public static void SurveyMenu() throws IOException, ClassNotFoundException {
+        System.out.println("1) Create and save a new Survey\n2) Display a Survey\n3) Load and display a Survey\n4) Save a Survey(does nothing)\n5) Modify an existing survey \n6) Take a survey \n7) Tabulate a survey \n8) Quit");
         String input = reader.next();
 
         if(!(surveyChoices.contains(input))) // if input is not a valid option
@@ -130,14 +127,122 @@ public class Main {
                     MainMenu();
                     System.exit(0);
 
+
                 case "5" :
+                    System.out.println("List of surveys: \n");
+                    folder = new File("surveys/");
+                    listOfFiles = folder.listFiles();
+
+                    for (int i = 0; i < listOfFiles.length; i++) {
+                        if (listOfFiles[i].isFile()) {
+                            System.out.println(listOfFiles[i].getName());
+                        }
+                    }
+                    System.out.println("\nEnter the name of the survey you wish to modify");
+                    input = reader.next();
+
+                    try {
+
+                        currentSurvey = Input.loadSurvey(input);
+                        System.out.println(currentSurvey.display());
+
+                        System.out.println("Enter question number to modify : ");
+                        int qNum = reader.nextInt();
+                        try {
+                            currentSurvey.editQuestion(qNum);
+                            Output.saveSurvey(currentSurvey, currentSurvey.getSurveyName());
+                            SurveyMenu(); //return to survey menu after question is done modified
+                            System.exit(0);
+                        }
+                        catch (NullPointerException e) {
+                            System.out.println("Question not found! Going back to survey menu");
+                            SurveyMenu();
+                            System.exit(0);
+                        }
+
+
+                    } catch (FileNotFoundException | ClassNotFoundException e) {
+                        System.out.println("Survey not found! Going back to survey menu");
+                        SurveyMenu();
+                        System.exit(0);
+                    }
+                    break;
+                case "6" :
+                    currentResponses = new Responses();
+                    System.out.println("List of surveys: \n");
+                    folder = new File("surveys/");
+                    listOfFiles = folder.listFiles();
+
+                    for (int i = 0; i < listOfFiles.length; i++) {
+                        if (listOfFiles[i].isFile()) {
+                            System.out.println(listOfFiles[i].getName());
+                        }
+                    }
+                    System.out.println("\nEnter the name of the survey you wish to take");
+                    input = reader.next();
+
+                    try {
+                        int qNum = 1;
+                        currentSurvey = Input.loadSurvey(input);
+                        for (Question question : currentSurvey.questions) {
+                            System.out.println("Question" + qNum + ": \n" + question.display());
+                            if (question instanceof TrueFalse || question instanceof MultipleChoice || question instanceof ShortAnswer || question instanceof EssayAnswer) {
+                                System.out.println("Enter response :");
+                                String response = reader.next();
+                                currentResponses.addResponse(response);
+                            } else if (question instanceof Ranking) {
+                                System.out.println("Enter ranking, seperated by spaces. Example : 1 2 3\nNote, improper input will result in incorrect answer");
+                                String response = reader.next();
+                                currentResponses.addResponse(response);
+                            } else if (question instanceof Matching) {
+                                int i = 1;
+                                String response = "";
+                                for (String col1str : ((Matching) question).col1) {
+                                    System.out.println("Enter column 2 row # that matches col 1 row #" + i + ":");
+                                    response = response + reader.next() + " ";
+                                    i++;
+                                }
+                                currentResponses.addResponse(response);
+                            }
+                            qNum++;
+                        }
+                        Util util = new Util();
+                        int numOfResponses = util.getNumOfResponses(currentSurvey);
+                        Output.saveResponses(currentResponses, currentSurvey.getSurveyName() + "_r" + numOfResponses);
+                        SurveyMenu();
+
+                    } catch (FileNotFoundException | ClassNotFoundException e) {
+                        System.out.println("Survey not found! Going back to survey menu");
+                        SurveyMenu();
+                        System.exit(0);
+                    }
+                    break;
+                case "7":
+                    Util util = new Util();
+                    System.out.println("List of surveys: \n");
+                    folder = new File("surveys/");
+                    listOfFiles = folder.listFiles();
+
+                    for (int i = 0; i < listOfFiles.length; i++) {
+                        if (listOfFiles[i].isFile()) {
+                            System.out.println(listOfFiles[i].getName());
+                        }
+                    }
+                    System.out.println("\nEnter the name of the survey you wish to tabulate");
+                    input = reader.next();
+
+                    currentSurvey = Input.loadSurvey(input);
+                    util.tabulateResponses(currentSurvey);
+                    SurveyMenu();
+
+                case "8" :
                     System.out.println("Program quitting!");
                     System.exit(0);
             }
         }
     }
 
-    public static void SurveyQuestionMenu() throws IOException {
+    public static void SurveyQuestionMenu() throws IOException, ClassNotFoundException {
 
         String prompt;
         String input;
@@ -232,9 +337,10 @@ public class Main {
         }
     }
 
-    public static void TestMenu() throws IOException {
-        System.out.println("1) Create and save a new Test\n2) Display a Test\n3) Load and display a Test\n4) Save a Test(does nothing)\n5) Quit");
+    public static void TestMenu() throws IOException, ClassNotFoundException {
+        System.out.println("1) Create and save a new Test\n2) Display a Test\n3) Load and display a Test\n4) Save a Test(does nothing)\n5) Modify an Existing test \n6) Take a test \n7) Tabulate a test \n8) Grade a test \n9) Quit");
         String input = reader.next();
+        Util util = new Util();
 
         if(!(surveyChoices.contains(input))) // if input is not a valid option
         {
@@ -271,7 +377,7 @@ public class Main {
                         TestMenu();
                         break;
                     } catch (FileNotFoundException | ClassNotFoundException e) {
-                        System.out.println("Survey not found! Going back to test menu");
+                        System.out.println("Test not found! Going back to test menu");
                         TestMenu();
                         break;
                     }
@@ -295,7 +401,7 @@ public class Main {
                         TestMenu();
                         break;
                     } catch (FileNotFoundException | ClassNotFoundException e) {
-                        System.out.println("Survey not found! Going back to test menu");
+                        System.out.println("Test not found! Going back to test menu");
                         TestMenu();
                         break;
                     }
@@ -308,13 +414,146 @@ public class Main {
                     break;
 
                 case "5" :
+                    System.out.println("List of tests: \n");
+                    folder = new File("tests/");
+                    listOfFiles = folder.listFiles();
+
+                    for (int i = 0; i < listOfFiles.length; i++) {
+                        if (listOfFiles[i].isFile()) {
+                            System.out.println(listOfFiles[i].getName());
+                        }
+                    }
+                    System.out.println("\nEnter the name of the test you wish to modify");
+                    input = reader.next();
+
+                    try {
+
+                        currentTest = Input.loadTest(input);
+                        System.out.println(currentTest.display());
+
+                        System.out.println("Enter question number to modify : ");
+                        int qNum = reader.nextInt();
+                        try {
+                            currentTest.editQuestion(qNum);
+                            Output.saveTest(currentTest, currentTest.getSurveyName());
+
+                            TestMenu(); //return to test menu after question is done modified
+                            System.exit(0);
+                        }
+                        catch (NullPointerException e) {
+                            System.out.println("Question not found! Going back to test menu");
+                            TestMenu();
+                            System.exit(0);
+                        }
+
+
+                    } catch (FileNotFoundException | ClassNotFoundException e) {
+                        System.out.println("Test not found! Going back to test menu");
+                        TestMenu();
+                        System.exit(0);
+                    }
+                    break;
+                case "6" :
+                    currentResponses = new Responses();
+                    System.out.println("List of tests: \n");
+                    folder = new File("tests/");
+                    listOfFiles = folder.listFiles();
+
+                    for (int i = 0; i < listOfFiles.length; i++) {
+                        if (listOfFiles[i].isFile()) {
+                            System.out.println(listOfFiles[i].getName());
+                        }
+                    }
+                    System.out.println("\nEnter the name of the test you wish to take");
+                    input = reader.next();
+
+                    try {
+                        int qNum = 1;
+                        currentTest = Input.loadTest(input);
+                        for (Question question : currentTest.questions) {
+                            System.out.println("Question" + qNum + ": \n" + question.display());
+                            if (question instanceof TrueFalse || question instanceof MultipleChoice || question instanceof ShortAnswer || question instanceof EssayAnswer) {
+                                System.out.println("Enter response :");
+                                String response = reader.next();
+                                currentResponses.addResponse(response);
+                            } else if (question instanceof Ranking) {
+                                System.out.println("Enter ranking, seperated by space. Also final number must be followed by an ADDITIONAL space Example (1 2 3 )\nNote, improper input will result in incorrect answer");
+                                System.out.println("YEAH LOL the user input here sucks really bad.");
+                                String response = reader.next();
+                                currentResponses.addResponse(response);
+                            } else if (question instanceof Matching) {
+                                int i = 1;
+                                String response = "";
+                                for (String col1str : ((Matching) question).col1) {
+                                    System.out.println("Enter column 2 row # that matches col 1 row #" + i + ":");
+                                    response = response + reader.next() + " ";
+                                    i++;
+                                }
+                                currentResponses.addResponse(response);
+                            }
+                            qNum++;
+                        }
+                        int numOfResponses = util.getNumOfResponses(currentTest);
+                        Output.saveResponses(currentResponses, currentTest.getSurveyName() + "_r" + numOfResponses);
+                        TestMenu();
+
+                    } catch (FileNotFoundException | ClassNotFoundException e) {
+                        System.out.println("Test not found! Going back to test menu");
+                        TestMenu();
+                        System.exit(0);
+                    }
+                    break;
+                case "7":
+                    System.out.println("List of tests: \n");
+                    folder = new File("tests/");
+                    listOfFiles = folder.listFiles();
+
+                    for (int i = 0; i < listOfFiles.length; i++) {
+                        if (listOfFiles[i].isFile()) {
+                            System.out.println(listOfFiles[i].getName());
+                        }
+                    }
+                    System.out.println("\nEnter the name of the test you wish to tabulate");
+                    input = reader.next();
+
+                    currentTest = Input.loadTest(input);
+                    util.tabulateResponses(currentTest);
+                    TestMenu();
+
+                case "8" :
+                    System.out.println("List of tests: \n");
+                    folder = new File("tests/");
+                    listOfFiles = folder.listFiles();
+
+                    for (int i = 0; i < listOfFiles.length; i++) {
+                        if (listOfFiles[i].isFile()) {
+                            System.out.println(listOfFiles[i].getName());
+                        }
+                    }
+                    System.out.println("\nEnter the name of the test you wish to grade");
+                    input = reader.next();
+
+                    currentTest = Input.loadTest(input);
+                    ArrayList<Double> grades = util.gradeTests(currentTest);
+                    int i = 0;
+                    System.out.println("Grades");
+                    for (double grade : grades) {
+                        System.out.println("Response " + (i+1) + ": " + grades.get(i));
+
+                        i++;
+                    }
+
+
+                    TestMenu();
+                    break;
+                case "9" :
                     System.out.println("Program quitting!");
                     break;
             }
         }
     }
 
-    public static void TestQuestionMenu() throws IOException {
+    public static void TestQuestionMenu() throws IOException, ClassNotFoundException {
 
         String answer;
         String prompt;
@@ -428,7 +667,7 @@ public class Main {
                     System.out.println("Enter the correct match for the following items in column 1.");
                     for (int i = 1; i <= num; i++) {
                         System.out.println("Item " + i + ": " + c1.get(i-1) + ", enter correct choice number for second column :");
-                        matchingCorrectAnswers = matchingCorrectAnswers + reader.next();
+                        matchingCorrectAnswers = matchingCorrectAnswers + reader.next() + " ";
                     }
                     currentTest.addQuestion(new Matching(prompt, c1, c2), matchingCorrectAnswers);    // create new matching
                     TestQuestionMenu();

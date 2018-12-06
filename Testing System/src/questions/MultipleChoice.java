@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class MultipleChoice extends Question{
 
-    ArrayList<String> choices;
+    public ArrayList<String> choices;
 
     public MultipleChoice(String p, ArrayList<String> choices) {
 
@@ -23,4 +23,5 @@ public class MultipleChoice extends Question{
 
         return temp;
     }
+
 }

@@ -1,0 +1,11 @@
+Hi professor/TA in charge of grading! here are some things u should know before grading.
+
+First of all, for the test grading part, I programmed so that both essay and short answer questions to be graded manually, and those questions will be ignored during the final grading process.
+I feel that auto grading short answer questions is kinda lame, for the students taking the test.
+
+My preferred method of running the program is to run the main method in MainTest.java, within the /src/tests/ directory
+Tests and surveys are save to the /tests/ and /surveys/ directories, responses are in the /responses/ directory.
+Responses are named by their corresponding test/survey + _rx, where x is the response number. There are 3 responses for the test and the survey, allowing for easier tabulation/grading.
+
+also, there is no support for multiple answers for a multiple choice question.
+also sometimes quitting doesn't fully work. (rare bug)

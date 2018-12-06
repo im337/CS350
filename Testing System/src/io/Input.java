@@ -1,5 +1,6 @@
 package io;
 
+import assessments.Responses;
 import assessments.Survey;
 import assessments.Test;
 import questions.Question;
@@ -28,7 +29,13 @@ public class Input {
         Test t = (Test) objectInputStream.readObject();
         return t;
     }
+    static public Responses loadResponses(String fileName) throws IOException, ClassNotFoundException {
+        FileInputStream fileInputStream = new FileInputStream("responses/" + fileName);
+        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
+        Responses r  = (Responses) objectInputStream.readObject();
+        return r;
+    }
 
 
 //      //load questions from file

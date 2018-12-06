@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 public class Matching extends Question {
 
-    ArrayList<String> col1 = new ArrayList<>();
-    ArrayList<String> col2 = new ArrayList<>();
+    public ArrayList<String> col1 = new ArrayList<>();
+    public ArrayList<String> col2 = new ArrayList<>();
 
     public Matching(String prompt, ArrayList<String> col1, ArrayList<String> col2) {
         this.prompt = prompt;
